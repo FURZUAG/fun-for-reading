@@ -46,14 +46,17 @@ La **meta final** es el formato de su examen: una lectura de 3–4 párrafos con
 
 | Nivel | Reading | Listening | Apoyos |
 |---|---|---|---|
-| 1 | 1 párrafo (~50 palabras), 2–3 preguntas | 20–30 s, 2–3 preguntas | Micro-pregunta tras cada parte, pistas, traducción libre, repeticiones ilimitadas |
-| 2 | 2 párrafos (~100), 4 preguntas | 45 s, 4 preguntas | Igual que el nivel 1 |
-| 3 | 3 párrafos (~150), 5–6 preguntas | 60–75 s, 5–6 preguntas | Menos micro-preguntas, 3 traducciones de frase |
-| 4 | 3–4 párrafos (~200), 7 preguntas | 90 s, 7 preguntas | Sin micro-preguntas, 2 repeticiones de audio |
-| 5 (examen) | 3–4 párrafos (~250), 8 preguntas | 2 min, 8 preguntas | Formato de examen, con las pistas solo al revisar |
+| 1 | 2 partes (~50 palabras), 3 preguntas | ~30 s, 3 preguntas | Micro-pregunta tras cada parte, traducción libre, repeticiones ilimitadas |
+| 2 | 2 partes (~80), 4 preguntas | ~45 s, 4 preguntas | Igual que el nivel 1 |
+| 3 | 3 partes (~120), 5 preguntas | ~60 s, 5 preguntas | Igual que el nivel 1 |
+| 4 | 3 partes (~150), 6 preguntas | ~75 s, 6 preguntas | Micro-preguntas en algunas partes, 3 traducciones, 3 repeticiones, pausa activa |
+| 5 | 3 partes (~180), 6 preguntas | ~85 s, 6 preguntas | Igual que el nivel 4 |
+| 6 | 4 partes (~220), 7 preguntas | ~95 s, 7 preguntas | Sin micro-preguntas, 2 traducciones, 2 repeticiones |
+| 7 | 4 partes (~240), 8 preguntas | ~1 min 50 s, 8 preguntas | Las tarjetas-pista ya no se ven durante las preguntas |
+| 8 (examen) | 4 partes (~260), 8 preguntas | ~2 min, 8 preguntas | Formato de examen, 1 traducción |
 
 **Reglas de avance** (automáticas y visibles solo en el panel del papá/mamá):
-- **Sube** un escalón (un poco más de texto o una pregunta más) después de **2 sesiones seguidas con ≥70 % de aciertos** y pocas respuestas "al aventón".
+- **Sube** un nivel después de **2 sesiones seguidas** (3 a partir del nivel 3) **con ≥70 % de aciertos** y como máximo una respuesta "al aventón" equivocada.
 - Si una sesión sale mal, **se mantiene** el nivel. **Nunca baja de forma visible**; si hace falta, la siguiente sesión es más corta sin decírselo.
 - El check-in de "cansado" usa ese día una versión más corta del mismo nivel.
 
@@ -84,7 +87,7 @@ La **meta final** es el formato de su examen: una lectura de 3–4 párrafos con
 - **Compañero tipo Pokémon** (criaturas originales, sin usar personajes con marca registrada):
   - Al empezar, cada niño elige su criatura entre 3 opciones (por ejemplo, de tipo dinosaurio, de tipo animal o de tipo fútbol).
   - Gana **experiencia (XP)** con cada misión: más XP por respuestas cuidadosas y por terminar la misión completa.
-  - **Sube de nivel** y **evoluciona** en ciertos niveles (por ejemplo, 5, 12 y 20), con animación de evolución.
+  - **Sube de nivel** y **evoluciona** en los niveles 4 y 10 (3 etapas), con animación de evolución.
   - Se le pueden comprar **accesorios y skins** con monedas: gorras, camisetas de fútbol, colores especiales…
   - Su nivel también refleja visualmente el progreso de concentración del niño.
 - **Álbum de estampas**: cada misión da un sobre con estampas de dinosaurios, animales y jugadores de fútbol ficticios. Completar páginas da premios grandes.
@@ -140,7 +143,7 @@ Por cada niño:
 
 - **PWA** (página web instalable): se abre en Chrome de la Galaxy Tab S7 FE y con "Agregar a pantalla de inicio" queda como app, a pantalla completa y en horizontal.
 - Funciona **sin internet** durante las misiones; solo necesita internet para generar contenido nuevo.
-- Datos en el almacenamiento local de la tablet (IndexedDB), con **exportar e importar respaldo**.
+- Datos en el almacenamiento local de la tablet (localStorage), con **exportar e importar respaldo**.
 - Sin servidor propio: hosting gratuito (por ejemplo, GitHub Pages).
 - HTML + JavaScript, diseño para pantalla táctil con botones grandes.
 

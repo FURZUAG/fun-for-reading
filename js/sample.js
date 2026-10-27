@@ -1,0 +1,148 @@
+// Unidad y cuentos de ejemplo para que la app funcione desde el primer día.
+
+export const SAMPLE_UNIT = {
+  id: 'unit-sample',
+  name: 'Ejemplo: Comparatives & Superlatives',
+  grammar: 'Comparatives and superlatives; relative pronouns who / that / which / where / when',
+  grammarNotes: 'bigger than, the biggest, more dangerous than, the most dangerous',
+  words: [
+    { en: 'big', es: 'grande' },
+    { en: 'fast', es: 'rápido' },
+    { en: 'tall', es: 'alto' },
+    { en: 'strong', es: 'fuerte' },
+    { en: 'heavy', es: 'pesado' },
+    { en: 'dangerous', es: 'peligroso' },
+    { en: 'stadium', es: 'estadio' },
+    { en: 'goalkeeper', es: 'portero' },
+    { en: 'team', es: 'equipo' },
+    { en: 'jungle', es: 'selva' },
+    { en: 'fossil', es: 'fósil' },
+    { en: 'museum', es: 'museo' },
+  ],
+  createdAt: '2026-10-27T00:00:00.000Z',
+};
+
+export const SAMPLE_PACKS = [
+  {
+    id: 'sample-r1',
+    profileId: null,
+    unitId: 'unit-sample',
+    skill: 'reading',
+    level: 1,
+    title: 'The Biggest Dinosaur',
+    theme: 'dinosaurs',
+    parts: [
+      {
+        text: 'Leo goes to the museum with his class. He sees a big fossil. It is the biggest dinosaur in the museum! Its name is Rexy.',
+        es: 'Leo va al museo con su clase. Ve un fósil grande. ¡Es el dinosaurio más grande del museo! Su nombre es Rexy.',
+        clue: { emoji: '🦖', text: 'Leo sees the biggest dinosaur.' },
+        check: { q: 'Where is Leo?', options: ['At the stadium', 'At the museum', 'At home'], answer: 1, evidence: 'Leo goes to the museum with his class.' },
+      },
+      {
+        text: 'Next, Leo sees a small dinosaur. It is faster than Rexy, but Rexy is stronger. Leo draws Rexy in his notebook. He is very happy.',
+        es: 'Después, Leo ve un dinosaurio pequeño. Es más rápido que Rexy, pero Rexy es más fuerte. Leo dibuja a Rexy en su cuaderno. Está muy feliz.',
+        clue: { emoji: '✏️', text: 'Leo draws Rexy.' },
+        check: { q: 'Which dinosaur is faster?', options: ['Rexy', 'The small dinosaur'], answer: 1, evidence: 'It is faster than Rexy, but Rexy is stronger.' },
+      },
+    ],
+    questions: [
+      { type: 'mc', skill: 'detail', q: 'What is the name of the biggest dinosaur?', options: ['Leo', 'Rexy', 'Max'], answer: 1, part: 1, evidence: 'Its name is Rexy.' },
+      { type: 'tf', skill: 'vocabulary', q: 'Rexy is stronger than the small dinosaur.', answer: true, part: 2, evidence: 'It is faster than Rexy, but Rexy is stronger.' },
+      { type: 'order', skill: 'sequence', q: 'Put the story in order.', items: ['Leo goes to the museum.', 'Leo sees a big fossil.', 'Leo sees a small dinosaur.', 'Leo draws Rexy.'] },
+    ],
+    glossary: { museum: 'museo', fossil: 'fósil', biggest: 'el más grande', faster: 'más rápido', stronger: 'más fuerte', draws: 'dibuja', notebook: 'cuaderno', class: 'clase' },
+    sample: true,
+  },
+  {
+    id: 'sample-l1',
+    profileId: null,
+    unitId: 'unit-sample',
+    skill: 'listening',
+    level: 1,
+    title: 'The Best Goalkeeper',
+    theme: 'football',
+    parts: [
+      {
+        text: 'Mia plays football on a team. She is the goalkeeper. She is taller than the other girls on her team. Today, her team has a big game at the stadium.',
+        es: 'Mia juega fútbol en un equipo. Ella es la portera. Es más alta que las otras niñas de su equipo. Hoy, su equipo tiene un partido importante en el estadio.',
+        clue: { emoji: '🧤', text: 'Mia is the goalkeeper.' },
+        check: { q: 'What does Mia play?', options: ['Football', 'Basketball', 'Tennis'], answer: 0, evidence: 'Mia plays football on a team.' },
+      },
+      {
+        text: 'The other team is very fast. They kick the ball, but Mia catches it! Mia\'s team wins the game. Her coach says, you are the best goalkeeper!',
+        es: 'El otro equipo es muy rápido. Patean el balón, ¡pero Mia lo atrapa! El equipo de Mia gana el partido. Su entrenador dice: ¡eres la mejor portera!',
+        clue: { emoji: '🏆', text: 'Mia\'s team wins.' },
+        check: { q: 'Who wins the game?', options: ['The other team', 'Mia\'s team', 'Nobody'], answer: 1, evidence: 'Mia\'s team wins the game.' },
+      },
+    ],
+    questions: [
+      { type: 'mc', skill: 'detail', q: 'Where is the big game?', options: ['At school', 'At the park', 'At the stadium'], answer: 2, part: 1, evidence: 'Today, her team has a big game at the stadium.' },
+      { type: 'tf', skill: 'detail', q: 'Mia is shorter than the other girls.', answer: false, part: 1, evidence: 'She is taller than the other girls on her team.' },
+      { type: 'mc', skill: 'detail', q: 'What does the coach say?', options: ['You are the best goalkeeper!', 'You are very slow!', 'Go home!'], answer: 0, part: 2, evidence: 'Her coach says, you are the best goalkeeper!' },
+    ],
+    glossary: { goalkeeper: 'portera', taller: 'más alta', stadium: 'estadio', kick: 'patear', catches: 'atrapa', wins: 'gana', coach: 'entrenador', team: 'equipo' },
+    sample: true,
+  },
+  {
+    id: 'sample-r2',
+    profileId: null,
+    unitId: 'unit-sample',
+    skill: 'reading',
+    level: 2,
+    title: 'The Jungle Race',
+    theme: 'animals',
+    parts: [
+      {
+        text: 'In the jungle, the animals have a race every year. This year, a cheetah, an elephant and a monkey are in the race. The cheetah is the fastest animal in the jungle. Everybody thinks the cheetah will win.',
+        es: 'En la selva, los animales hacen una carrera cada año. Este año, un guepardo, un elefante y un mono están en la carrera. El guepardo es el animal más rápido de la selva. Todos piensan que el guepardo va a ganar.',
+        clue: { emoji: '🐆', text: 'The cheetah is the fastest.' },
+        check: { q: 'Which animal is the fastest?', options: ['The elephant', 'The monkey', 'The cheetah'], answer: 2, evidence: 'The cheetah is the fastest animal in the jungle.' },
+      },
+      {
+        text: 'But the race goes through the trees! The monkey, who is the best climber, jumps from tree to tree. The elephant is the heaviest animal, so it walks slowly. In the end, the monkey wins. The cheetah says, you are smarter than me!',
+        es: '¡Pero la carrera pasa por los árboles! El mono, que es el mejor trepador, salta de árbol en árbol. El elefante es el animal más pesado, así que camina despacio. Al final, gana el mono. El guepardo dice: ¡eres más listo que yo!',
+        clue: { emoji: '🐒', text: 'The monkey wins the race.' },
+        check: { q: 'Who wins the race?', options: ['The monkey', 'The cheetah', 'The elephant'], answer: 0, evidence: 'In the end, the monkey wins.' },
+      },
+    ],
+    questions: [
+      { type: 'mc', skill: 'main_idea', q: 'What is the story about?', options: ['A jungle race', 'A football game', 'A trip to the museum'], answer: 0, part: 1, evidence: 'In the jungle, the animals have a race every year.' },
+      { type: 'mc', skill: 'vocabulary', q: 'Which animal is the heaviest?', options: ['The monkey', 'The elephant', 'The cheetah'], answer: 1, part: 2, evidence: 'The elephant is the heaviest animal, so it walks slowly.' },
+      { type: 'tf', skill: 'inference', q: 'The race goes through the trees, so climbing is important.', answer: true, part: 2, evidence: 'But the race goes through the trees!' },
+      { type: 'order', skill: 'sequence', q: 'Put the story in order.', items: ['Three animals are in the race.', 'Everybody thinks the cheetah will win.', 'The monkey jumps from tree to tree.', 'The monkey wins.'] },
+    ],
+    glossary: { jungle: 'selva', race: 'carrera', cheetah: 'guepardo', fastest: 'el más rápido', climber: 'trepador', heaviest: 'el más pesado', slowly: 'despacio', smarter: 'más listo', through: 'a través de', trees: 'árboles' },
+    sample: true,
+  },
+  {
+    id: 'sample-l2',
+    profileId: null,
+    unitId: 'unit-sample',
+    skill: 'listening',
+    level: 2,
+    title: 'The Tallest Tower',
+    theme: 'blocks',
+    parts: [
+      {
+        text: 'Sam and his sister Ana play a block building game. Sam wants to build the tallest tower in the world. Ana wants to build a house where their pets can live. They start in the morning, when the sun comes up.',
+        es: 'Sam y su hermana Ana juegan un juego de construir con bloques. Sam quiere construir la torre más alta del mundo. Ana quiere construir una casa donde puedan vivir sus mascotas. Empiezan en la mañana, cuando sale el sol.',
+        clue: { emoji: '🧱', text: 'Sam builds a tower, Ana builds a house.' },
+        check: { q: 'What does Ana want to build?', options: ['A tower', 'A house', 'A boat'], answer: 1, evidence: 'Ana wants to build a house where their pets can live.' },
+      },
+      {
+        text: 'At night, a big storm comes. The tower is taller, but it is not stronger. The wind breaks the top of the tower! Sam and his pets go into Ana\'s house. Sam says, your house is the safest place in the world!',
+        es: 'En la noche, llega una tormenta grande. La torre es más alta, pero no es más fuerte. ¡El viento rompe la punta de la torre! Sam y sus mascotas entran a la casa de Ana. Sam dice: ¡tu casa es el lugar más seguro del mundo!',
+        clue: { emoji: '⛈️', text: 'A storm breaks the tower.' },
+        check: { q: 'What breaks the tower?', options: ['The wind', 'A dog', 'Ana'], answer: 0, evidence: 'The wind breaks the top of the tower!' },
+      },
+    ],
+    questions: [
+      { type: 'mc', skill: 'detail', q: 'Who is Ana?', options: ['Sam\'s sister', 'Sam\'s teacher', 'Sam\'s pet'], answer: 0, part: 1, evidence: 'Sam and his sister Ana play a block building game.' },
+      { type: 'mc', skill: 'detail', q: 'When do they start?', options: ['At night', 'In the morning', 'After school'], answer: 1, part: 1, evidence: 'They start in the morning, when the sun comes up.' },
+      { type: 'tf', skill: 'vocabulary', q: 'The tower is stronger than the house.', answer: false, part: 2, evidence: 'The tower is taller, but it is not stronger.' },
+      { type: 'order', skill: 'sequence', q: 'Put the story in order.', items: ['Sam and Ana start to build.', 'A big storm comes.', 'The wind breaks the tower.', 'Sam goes into Ana\'s house.'] },
+    ],
+    glossary: { build: 'construir', tallest: 'la más alta', tower: 'torre', pets: 'mascotas', storm: 'tormenta', wind: 'viento', breaks: 'rompe', safest: 'el más seguro', where: 'donde', when: 'cuando' },
+    sample: true,
+  },
+];

@@ -1,0 +1,17 @@
+{
+  "name": "Fun for Reading",
+  "short_name": "Fun Reading",
+  "description": "Reading y listening en inglés para niños, con misiones cortas que crecen poco a poco.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#f4f1ff",
+  "theme_color": "#6c5ce7",
+  "lang": "es",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
