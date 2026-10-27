@@ -7,7 +7,8 @@ El diseño completo está en [DISENO.md](DISENO.md).
 ## Qué incluye (fase 1)
 
 - **Perfiles** para cada niño, con su compañero (4 criaturas originales con 3 evoluciones cada una).
-- **Misiones** de unos 3 a 15 minutos, alternando lectura y audio:
+- **Juego libre:** cada niño juega con su propio perfil cuando quiera y cuantas misiones quiera, sin turnos. Elige entre **leer** o **escuchar**; la opción que tiene menos práctica lleva un bonus de +10 XP.
+- **Misiones** de unos 3 a 15 minutos:
   1. ¿Cómo te sientes hoy? Si llega cansado, la misión es más corta.
   2. Calentamiento: unir palabras de la unidad con su traducción.
   3. Lectura o audio **por partes**, con una micro-pregunta y una **tarjeta-pista** después de cada parte.

@@ -98,16 +98,18 @@ function stopClock(m) {
 
 // ---------- Preparación ----------
 
-export function prepareMission(profile, { tired }) {
-  let skill = profile.nextSkill || 'reading';
+export function prepareMission(profile, { tired, skill: chosen }) {
+  let skill = chosen || profile.nextSkill || 'reading';
+  const recommended = skill === profile.nextSkill;
   let pack = pickPack(profile, skill);
-  if (!pack) {
+  if (!pack && !chosen) {
     skill = skill === 'reading' ? 'listening' : 'reading';
     pack = pickPack(profile, skill);
   }
   let repeat = false;
   if (!pack) {
-    pack = pickRepeatPack(profile);
+    // Se acabaron los cuentos nuevos: repite uno de lo que eligió (o de lo que haya).
+    pack = pickRepeatPack(profile, skill) || pickRepeatPack(profile);
     repeat = true;
     if (!pack) return null;
     skill = pack.skill;
@@ -134,6 +136,7 @@ export function prepareMission(profile, { tired }) {
     profile,
     pack,
     skill,
+    recommended,
     spec,
     parts,
     questions,
@@ -666,6 +669,7 @@ function finish(m) {
     tired: m.tired,
     short: m.short,
     repeat: m.repeat,
+    recommended: m.recommended && m.skill === m.profile.nextSkill,
     focusMs: Math.round(m.activeMs),
     score: m.results.reduce((s, r) => s + r.points, 0),
     max: m.results.length,

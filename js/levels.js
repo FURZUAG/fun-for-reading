@@ -55,6 +55,9 @@ export function xpForNext(level) {
   return 40 + 20 * level;
 }
 
+// XP extra por elegir la habilidad que le toca practicar (para que no deje una de lado).
+export const BONUS_XP = 10;
+
 export const EVOLVE_AT = [4, 10]; // niveles del compañero en que evoluciona
 
 export function stageForLevel(level) {

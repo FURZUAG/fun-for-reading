@@ -1,7 +1,7 @@
 // Pantallas del niño: elegir perfil, compañero, inicio, check-in, calentamiento y resultados.
 import { state, save, getProfile, activeUnit, stockFor, sessionsThisWeek, finishSession, wordStat } from './store.js';
 import { SPECIES, creatureSVG } from './creatures.js';
-import { stageForLevel, xpForNext } from './levels.js';
+import { stageForLevel, xpForNext, BONUS_XP } from './levels.js';
 import { t, setLang, getLang } from './i18n.js';
 import { speakWord, speak, stop as stopAudio } from './tts.js';
 import { render, on, esc, shuffle, modal, toast, confetti, fmtTime } from './ui.js';
@@ -112,12 +112,19 @@ function kidHome(p) {
             <h3>${t('missionsWeek')}</h3>
             <div class="week">${[0, 1, 2].map((i) => `<span class="${i < week ? 'on' : ''}">⭐</span>`).join('')}${week > 3 ? `<span class="on">+${week - 3}</span>` : ''}</div>
           </div>
-          <div class="card skills">
-            <div>📖 ${t('reading')} <b>${t('level')} ${p.prog.reading.level}</b></div>
-            <div>🎧 ${t('listeningSkill')} <b>${t('level')} ${p.prog.listening.level}</b></div>
-            <div class="muted">${t('storiesReady')}: 📖 ${stock.reading} · 🎧 ${stock.listening}</div>
+          <h3>${t('whatToday')}</h3>
+          <div class="skill-choice">
+            ${['reading', 'listening']
+              .map(
+                (s) => `<button class="skill-btn ${s}" data-s="${s}">
+                  ${s === p.nextSkill ? `<span class="bonus">⭐ ${t('bonus')} +${BONUS_XP} XP</span>` : ''}
+                  <span class="skill-icon">${s === 'reading' ? '📖' : '🎧'}</span>
+                  <b>${t(s === 'reading' ? 'readStory' : 'listenStory')}</b>
+                  <span class="muted">${t('level')} ${p.prog[s].level} · ${stock[s]} ${t('new')}</span>
+                </button>`,
+              )
+              .join('')}
           </div>
-          <button class="btn huge primary" id="start">🚀 ${t('start')}</button>
         </div>
       </div>
     </div>`);
@@ -133,12 +140,12 @@ function kidHome(p) {
     void e.currentTarget.offsetWidth;
     e.currentTarget.classList.add('jump');
   });
-  root.querySelector('#start').addEventListener('click', () => checkIn(p));
+  on(root, '.skill-btn', 'click', (e, el) => checkIn(p, el.dataset.s));
 }
 
 // ---------- Check-in ----------
 
-function checkIn(p) {
+function checkIn(p, skill) {
   const root = render(`
     <div class="screen center">
       <h1>${t('howFeel')}</h1>
@@ -151,7 +158,7 @@ function checkIn(p) {
     </div>`);
   speak('How do you feel today?');
   root.querySelector('#back').addEventListener('click', () => kidHome(p));
-  on(root, '.feel', 'click', (e, el) => warmUp(p, { tired: el.dataset.f === 'tired' }));
+  on(root, '.feel', 'click', (e, el) => warmUp(p, { skill, tired: el.dataset.f === 'tired' }));
 }
 
 // ---------- Calentamiento: unir palabras ----------
@@ -251,6 +258,7 @@ async function showResults(p, session, pack) {
         <div class="big-pet" id="bigpet">${creatureSVG(p.creature.species, stageBefore, 'bounce')}</div>
         <div class="xpbar"><div id="xpfill" style="width:0%"></div><span>+${out.xp} XP · Lv ${p.petLevel}</span></div>
       </div>
+      ${out.bonus ? `<p class="card levelup">⭐ ${t('bonusEarned')} +${BONUS_XP} XP</p>` : ''}
       ${out.levelUpSkill ? `<p class="card levelup">🚀 ${t('harderNext')}</p>` : ''}
       <button class="btn big primary" id="home">🏠 ${t('home')}</button>
     </div>`);

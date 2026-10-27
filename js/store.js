@@ -1,6 +1,6 @@
 // Todo el estado vive en localStorage de la tablet. Se puede respaldar en un archivo JSON.
 import { SAMPLE_UNIT, SAMPLE_PACKS } from './sample.js';
-import { xpForNext, goodSessionsNeeded, isGoodSession, MAX_LEVEL } from './levels.js';
+import { xpForNext, goodSessionsNeeded, isGoodSession, MAX_LEVEL, BONUS_XP } from './levels.js';
 
 const KEY = 'fun-for-reading-v1';
 
@@ -117,8 +117,8 @@ export function pickPack(profile, skill) {
 }
 
 // Si se acabaron los cuentos nuevos, repite el que hizo hace más tiempo.
-export function pickRepeatPack(profile) {
-  const mine = state.packs.filter((p) => p.profileId === profile.id || p.profileId === null);
+export function pickRepeatPack(profile, skill) {
+  const mine = state.packs.filter((p) => (p.profileId === profile.id || p.profileId === null) && (!skill || p.skill === skill));
   if (!mine.length) return null;
   const lastUse = (pack) => {
     const s = state.sessions.filter((x) => x.packId === pack.id && x.profileId === profile.id).at(-1);
@@ -161,7 +161,7 @@ export function sessionsThisWeek(profile) {
 // Registra la sesión, aplica la escalera de aguante y da XP/monedas.
 // Devuelve lo que pasó para mostrarlo en la pantalla de resultados.
 export function finishSession(profile, session, pack) {
-  const out = { levelUpSkill: false, petLevelUps: 0, xp: 0, coins: 0, record: false };
+  const out = { levelUpSkill: false, petLevelUps: 0, xp: 0, coins: 0, record: false, bonus: false };
   state.sessions.push(session);
   if (!pack.usedBy.includes(profile.id)) pack.usedBy.push(profile.id);
 
@@ -179,7 +179,11 @@ export function finishSession(profile, session, pack) {
     prog.good = 0;
     prog.bad += 1;
   }
-  profile.nextSkill = session.skill === 'reading' ? 'listening' : 'reading';
+  // La habilidad con bonus es la que lleva menos misiones; si van iguales, la que no acaba de hacer.
+  const count = (s) => state.sessions.filter((x) => x.profileId === profile.id && x.skill === s).length;
+  const r = count('reading');
+  const l = count('listening');
+  profile.nextSkill = r < l ? 'reading' : l < r ? 'listening' : session.skill === 'reading' ? 'listening' : 'reading';
 
   if (session.focusMs > profile.best.focusMs) {
     out.record = profile.best.focusMs > 0;
@@ -187,6 +191,10 @@ export function finishSession(profile, session, pack) {
   }
 
   out.xp = 15 + Math.round(session.score * 8) + session.careful * 2;
+  if (session.recommended) {
+    out.bonus = true;
+    out.xp += BONUS_XP;
+  }
   out.coins = 5 + Math.round(session.score * 2);
   profile.coins += out.coins;
   profile.xp += out.xp;
