@@ -1,6 +1,6 @@
 // Guarda la app en la tablet para que funcione sin internet.
 // Cambia VERSION cada vez que publiques cambios para que la tablet los descargue.
-const VERSION = 'ffr-v1';
+const VERSION = 'ffr-v2';
 const FILES = [
   './',
   'index.html',
@@ -18,6 +18,9 @@ const FILES = [
   'js/i18n.js',
   'js/ui.js',
   'js/sample.js',
+  'js/cloud.js',
+  'js/cloudui.js',
+  'js/firebase-config.js',
   'icons/icon.svg',
   'icons/icon-192.png',
   'icons/icon-512.png',
@@ -41,7 +44,9 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(e.request)
       .then((res) => {
-        if (res.ok && new URL(e.request.url).origin === location.origin) {
+        const url = new URL(e.request.url);
+        // También guarda las librerías de Firebase para poder abrir la app sin internet.
+        if (res.ok && (url.origin === location.origin || url.hostname === 'www.gstatic.com')) {
           const copy = res.clone();
           caches.open(VERSION).then((c) => c.put(e.request, copy));
         }

@@ -4,6 +4,8 @@ import { buildPrompt, parseResponse } from './prompt.js';
 import { MAX_LEVEL } from './levels.js';
 import { englishVoices, speak } from './tts.js';
 import { render, on, esc, modal, toast, fmtTime, fmtDate } from './ui.js';
+import { renderCloudPanel } from './cloudui.js';
+import { forgetDevice } from './cloud.js';
 
 const THEME_LABELS = {
   football: '⚽ Fútbol',
@@ -549,12 +551,16 @@ function settingsPane(pane) {
       <button class="btn small" id="test">▶ Probar</button>
     </div>
     <div class="card">
+      <h3>☁️ Guardar en la nube</h3>
+      <div id="cloud"></div>
+    </div>
+    <div class="card">
       <h3>🔒 PIN</h3>
       <button class="btn small" id="pin">Cambiar PIN</button>
     </div>
     <div class="card">
       <h3>💾 Respaldo</h3>
-      <p class="muted">El progreso se guarda solo en esta tablet. Descarga un respaldo de vez en cuando.</p>
+      <p class="muted">Un archivo con todo el progreso. Útil si no usas la nube, o como copia extra.</p>
       <button class="btn small" id="exp">⬇ Descargar respaldo</button>
       <label class="btn small ghost">⬆ Cargar respaldo<input type="file" id="imp" accept="application/json,.json" hidden></label>
     </div>
@@ -562,6 +568,7 @@ function settingsPane(pane) {
       <h3>⚠️ Borrar todo</h3>
       <button class="btn danger small" id="reset">Borrar todos los datos</button>
     </div>`;
+  renderCloudPanel(pane.querySelector('#cloud'));
   pane.querySelector('#voice')?.addEventListener('change', (e) => {
     state.settings.voiceURI = e.target.value;
     save();
@@ -593,8 +600,9 @@ function settingsPane(pane) {
     }
   });
   pane.querySelector('#reset').addEventListener('click', async () => {
-    const ok = await modal({ body: '<p>Se borran perfiles, progreso, unidades y cuentos. ¿Seguro?</p>', buttons: [{ label: 'Cancelar', value: false }, { label: 'Borrar todo', cls: 'danger', value: true }] });
+    const ok = await modal({ body: '<p>Se borran perfiles, progreso, unidades y cuentos <b>de este dispositivo</b> y se cierra la sesión de la nube. Lo guardado en la nube no se borra. ¿Seguro?</p>', buttons: [{ label: 'Cancelar', value: false }, { label: 'Borrar todo', cls: 'danger', value: true }] });
     if (!ok) return;
+    await forgetDevice();
     resetAll();
     exitTo();
   });

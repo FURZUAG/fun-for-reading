@@ -29,12 +29,20 @@ function load() {
   return defaultState();
 }
 
+const saveListeners = [];
+
+// La nube se suscribe aquí para subir los cambios.
+export function onSave(fn) {
+  saveListeners.push(fn);
+}
+
 export function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify(state));
   } catch (e) {
     alert('No se pudo guardar el progreso: ' + e.message);
   }
+  saveListeners.forEach((fn) => fn());
 }
 
 export function uid(prefix = 'id') {

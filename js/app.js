@@ -7,6 +7,8 @@ import { speakWord, speak, stop as stopAudio } from './tts.js';
 import { render, on, esc, shuffle, modal, toast, confetti, fmtTime } from './ui.js';
 import { prepareMission, runMission } from './mission.js';
 import { openParent } from './parent.js';
+import { cloudEnabled, cloudStatus, maybePull } from './cloud.js';
+import { renderCloudPanel } from './cloudui.js';
 
 const petName = (p) => p.creature?.name || SPECIES[p.creature?.species]?.names[stageForLevel(p.petLevel)] || '';
 
@@ -22,8 +24,10 @@ export function showProfiles() {
         <div class="welcome-pets">${['dino', 'fox', 'ball', 'cube'].map((s) => creatureSVG(s, 0, 'bounce')).join('')}</div>
         <p>¡Bienvenidos! Para empezar, papá o mamá crea un PIN y los perfiles de los niños.</p>
         <button class="btn big primary" id="parent">👨‍👩‍👧 Empezar configuración</button>
+        ${cloudEnabled() ? '<div class="row center"><button class="btn ghost" id="login">☁️ Ya usamos la app en otro dispositivo</button></div>' : ''}
       </div>`);
     root.querySelector('#parent').addEventListener('click', () => openParent(showProfiles));
+    root.querySelector('#login')?.addEventListener('click', cloudLogin);
     return;
   }
   const root = render(`
@@ -43,9 +47,29 @@ export function showProfiles() {
           .join('')}
       </div>
       <div class="row center"><button class="btn ghost" id="parent">🔒 ${t('parents')}</button></div>
+      ${cloudStatus().email ? `<p class="center muted cloud-mini">☁️ ${cloudStatus().status === 'offline' ? 'Sin internet: se guarda al reconectar' : 'Guardado en la nube'}</p>` : ''}
     </div>`);
   on(root, '.profile-card', 'click', (e, el) => openKid(getProfile(el.dataset.id)));
   root.querySelector('#parent').addEventListener('click', () => openParent(showProfiles));
+  refreshFromCloud();
+}
+
+// Bajar cambios de otros dispositivos al volver a esta pantalla.
+async function refreshFromCloud() {
+  const changed = await maybePull();
+  if (changed && document.querySelector('.profiles')) showProfiles();
+}
+
+// Dispositivo nuevo: iniciar sesión con la cuenta familiar para bajar todo.
+function cloudLogin() {
+  const root = render(`
+    <div class="screen parent">
+      <h1>☁️ Entrar con la cuenta familiar</h1>
+      <div class="card" id="cloud"></div>
+      <button class="btn ghost" id="back">⬅ Regresar</button>
+    </div>`);
+  renderCloudPanel(root.querySelector('#cloud'), { signupAllowed: false, onConnected: () => showProfiles() });
+  root.querySelector('#back').addEventListener('click', showProfiles);
 }
 
 function openKid(p) {

@@ -332,6 +332,9 @@ mark { background: #fff1a8; border-radius: 6px; padding: 2px 0; box-shadow: 0 0 
 .table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .table th, .table td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; }
 .table-wrap { overflow-x: auto; }
+#cloud .input { display: block; width: 100%; max-width: 420px; margin: 8px 0; }
+.cloud-status { font-weight: 700; }
+.cloud-mini { margin-top: 4px; }
 
 /* ---------- Pantallas angostas ---------- */
 @media (max-width: 760px) {

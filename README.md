@@ -23,7 +23,8 @@ El diseño completo está en [DISENO.md](DISENO.md).
   - Cuentos por copiar y pegar con Claude o Gemini.
   - Progreso: minutos de concentración, aciertos por habilidad, respuestas "al aventón" y palabras difíciles.
   - Voz, respaldo de datos y borrado.
-- **Funciona sin internet** una vez instalada. Los datos se guardan solo en la tablet.
+- **Funciona sin internet** una vez instalada.
+- **Nube opcional (Firebase):** con una cuenta familiar, el avance, los niveles y los cuentos se comparten entre la tablet y la laptop. Sin configurarla, todo se guarda solo en el dispositivo.
 
 ## Cómo crear cuentos nuevos (copiar y pegar)
 
@@ -49,7 +50,29 @@ Si la respuesta se corta, pídele al chat "continúa el JSON" y pega todo junto.
 
 Si la voz en inglés suena mal o no se oye, revisa **Ajustes de la tablet → Administración general → Texto a voz**. Ahí elige **Servicios de voz de Google** y descarga el idioma **inglés**. Después escoge la voz en **Modo papá/mamá → ⚙️ Ajustes**.
 
-> Los datos viven en la tablet. Si borras los datos de Chrome, se pierden. Descarga un respaldo de vez en cuando en **⚙️ Ajustes → Descargar respaldo**.
+## Guardar en la nube (Firebase)
+
+1. Crea el proyecto de Firebase: activa **Authentication → Correo electrónico/contraseña** y crea **Firestore** con las reglas de abajo.
+2. Copia la configuración web (`firebaseConfig`) en `js/firebase-config.js`.
+3. En la app: **Modo papá/mamá → ⚙️ Ajustes → Guardar en la nube → Crear cuenta familiar**. En los demás dispositivos usa **☁️ Ya usamos la app en otro dispositivo** o **Iniciar sesión**.
+
+Reglas de Firestore:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /families/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    match /families/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
+```
+
+Sin la nube, los datos viven solo en el navegador de cada dispositivo; descarga un respaldo de vez en cuando en **⚙️ Ajustes → Descargar respaldo**.
 
 ## Para probarla en una computadora
 
@@ -70,6 +93,7 @@ python3 -m http.server 8000
 | `js/prompt.js` | Instrucciones para Claude o Gemini y lectura de la respuesta |
 | `js/creatures.js` | Dibujos de los compañeros |
 | `js/store.js` | Datos guardados, XP, monedas y reglas para subir de nivel |
+| `js/cloud.js`, `js/cloudui.js`, `js/firebase-config.js` | Sincronización con Firebase y la cuenta familiar |
 | `js/tts.js` | Voz en inglés |
 | `js/i18n.js` | Textos en inglés y español |
 | `sw.js`, `manifest.webmanifest` | Instalación y uso sin internet |
