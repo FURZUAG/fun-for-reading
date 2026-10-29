@@ -677,6 +677,7 @@ function finish(m) {
     rushedWrong: m.rushedWrong,
     careful: m.careful,
     checks: m.checks,
+    warmup: m.warmup || null,
     bySkill,
     lang: getLang(),
   };

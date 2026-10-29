@@ -52,6 +52,11 @@ QUESTIONS
 - "es" is a natural Mexican Spanish translation of the part.
 - "glossary": 8–12 harder words from the story (as they appear, lowercase) with their Spanish translation.
 
+WARM-UP DRILLS (one set per story)
+- "drills": 4 short practice sentences for the warm-up, each with exactly ONE blank written as ___ and 3 options (exactly one correct).
+- If the grammar of the month is a verb tense or verb form, the drills practice conjugating verbs (the options are forms of the same verb, e.g. play / plays / played). Otherwise they practice the grammar structure of the month (e.g. bigger / biggest / more big; who / which / where). If there is no grammar topic, they practice the vocabulary words.
+- Use the story's characters and theme. "hint" = a very short rule in Mexican Spanish (max 12 words). "es" = the full sentence in Spanish.
+
 OUTPUT
 Reply with ONLY valid JSON (no comments, no extra text), exactly in this shape:
 {
@@ -74,7 +79,10 @@ Reply with ONLY valid JSON (no comments, no extra text), exactly in this shape:
         { "type": "tf", "skill": "grammar", "q": "…", "answer": true, "part": 2, "evidence": "…" },
         { "type": "order", "skill": "sequence", "q": "Put the events in order.", "items": ["…", "…", "…", "…"] }
       ],
-      "glossary": { "word": "palabra" }
+      "glossary": { "word": "palabra" },
+      "drills": [
+        { "q": "The cheetah is ___ than the elephant.", "options": ["faster", "fastest", "more fast"], "answer": 0, "hint": "Comparativo: adjetivo corto + -er + than", "es": "El guepardo es más rápido que el elefante." }
+      ]
     }
   ]
 }
@@ -111,6 +119,16 @@ function normMC(q, nParts) {
     part: Number.isInteger(part) && part >= 1 && part <= nParts ? part : null,
     evidence: str(q.evidence),
   };
+}
+
+// Ejercicio del calentamiento: una frase con un hueco (___) y opciones.
+export function normDrill(d) {
+  if (!d || typeof d !== 'object') return null;
+  const q = str(d.q).replace(/_{2,}/, '___');
+  const options = Array.isArray(d.options) ? d.options.map(str).filter(Boolean) : [];
+  const answer = Number(d.answer);
+  if (!q.includes('___') || options.length < 2 || !Number.isInteger(answer) || answer < 0 || answer >= options.length) return null;
+  return { q, options, answer, hint: str(d.hint), es: str(d.es) };
 }
 
 function normQuestion(q, nParts) {
@@ -158,6 +176,7 @@ function normStory(raw, { profileId, unitId }) {
       if (str(k) && str(v)) glossary[str(k).toLowerCase()] = str(v);
     }
   }
+  const drills = (Array.isArray(raw.drills) ? raw.drills : []).map(normDrill).filter(Boolean);
   const level = Number(raw.level);
   return {
     id: uid('story'),
@@ -170,6 +189,7 @@ function normStory(raw, { profileId, unitId }) {
     parts,
     questions,
     glossary,
+    drills,
     usedBy: [],
     createdAt: new Date().toISOString(),
   };

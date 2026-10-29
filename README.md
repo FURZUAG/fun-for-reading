@@ -10,7 +10,7 @@ El diseño completo está en [DISENO.md](DISENO.md).
 - **Juego libre:** cada niño juega con su propio perfil cuando quiera y cuantas misiones quiera, sin turnos. Elige entre **leer** o **escuchar**; la opción que tiene menos práctica lleva un bonus de +10 XP.
 - **Misiones** de unos 3 a 15 minutos:
   1. ¿Cómo te sientes hoy? Si llega cansado, la misión es más corta.
-  2. Calentamiento: unir palabras de la unidad con su traducción.
+  2. Calentamiento en dos rondas: unir palabras de la unidad con su traducción, y un repaso del tema de la unidad (gramática o conjugación de verbos con ejercicios de cada cuento; si no hay, vocabulario escuchando la palabra).
   3. Lectura o audio **por partes**, con una micro-pregunta y una **tarjeta-pista** después de cada parte.
   4. Preguntas finales: opción múltiple, verdadero/falso y **ordenar los hechos**.
   5. Resultados: tiempo de concentración, respuestas cuidadosas, monedas y XP.

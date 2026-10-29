@@ -312,7 +312,8 @@ function storyPreview(s) {
     .join('');
   return `
     ${s.parts.map((p, i) => `<p><b>${i + 1}.</b> ${esc(p.text)}<br><span class="muted">${esc(p.es)}</span></p>`).join('')}
-    <ol>${qs}</ol>`;
+    <ol>${qs}</ol>
+    ${s.drills?.length ? `<p class="muted"><b>Repaso del calentamiento</b></p><ul>${s.drills.map((d) => `<li>${esc(d.q)} <b>(${esc(d.options[d.answer])})</b></li>`).join('')}</ul>` : ''}`;
 }
 
 function storiesPane(pane) {
@@ -434,10 +435,13 @@ function drawDraft(pane) {
   box.innerHTML = `
     ${errors.length ? `<p class="hint">⚠️ Se descartaron ${errors.length}: ${errors.map(esc).join('; ')}</p>` : ''}
     ${stories.map((s, i) => `
-      <details class="story-row">
-        <summary><label><input type="checkbox" class="keep" data-i="${i}" checked></label> ${s.skill === 'reading' ? '📖' : '🎧'} <b>${esc(s.title)}</b> · nivel ${s.level} · ${s.parts.length} partes · ${s.questions.length} preguntas</summary>
-        ${storyPreview(s)}
-      </details>`).join('')}
+      <div class="draft-row">
+        <label class="check-chip"><input type="checkbox" class="keep" data-i="${i}" checked> Guardar</label>
+        <details class="story-row">
+          <summary>${s.skill === 'reading' ? '📖' : '🎧'} <b>${esc(s.title)}</b> · nivel ${s.level} · ${s.parts.length} partes · ${s.questions.length} preguntas</summary>
+          ${storyPreview(s)}
+        </details>
+      </div>`).join('')}
     ${stories.length ? '<button class="btn primary big" id="savedraft">✓ Guardar cuentos marcados</button>' : ''}`;
   box.querySelector('#savedraft')?.addEventListener('click', () => {
     const keep = [...box.querySelectorAll('.keep')].filter((c) => c.checked).map((c) => stories[Number(c.dataset.i)]);
@@ -482,6 +486,11 @@ function progressPane(pane) {
   const skillBars = Object.entries(agg).map(([k, [pts, n]]) => ({ label: SKILL_LABELS[k] || k, v: Math.round((pts / n) * 100) }));
   const hard = difficultWords(kid);
   const recentRushed = ses.slice(-5).reduce((a, s) => a + s.rushedAny, 0);
+  const reviewPct = (kind) => {
+    const r = ses.slice(-10).map((s) => s.warmup?.review).filter((x) => x?.kind === kind);
+    const [c, n] = r.reduce(([c, n], x) => [c + x.score[0], n + x.score[1]], [0, 0]);
+    return n ? `<b>${Math.round((c / n) * 100)}%</b> al primer intento (${n} ejercicios)` : 'aún sin datos';
+  };
 
   pane.innerHTML = `
     <div class="row wrap">
@@ -505,6 +514,12 @@ function progressPane(pane) {
     <div class="card">
       <h3>Atención</h3>
       <p>Respuestas “al aventón” en las últimas 5 misiones: <b>${recentRushed}</b> ${recentRushed <= 2 ? '👍' : '— vale la pena sentarte a su lado en la próxima misión.'}</p>
+    </div>
+    <div class="card">
+      <h3>Repaso del calentamiento (últimas 10 misiones)</h3>
+      <p>Gramática o conjugación: ${reviewPct('grammar')}</p>
+      <p>Vocabulario: ${reviewPct('vocab')}</p>
+      <p class="muted">Los ejercicios de gramática vienen de cada cuento nuevo y practican el tema de la unidad.</p>
     </div>
     <div class="card">
       <h3>Palabras que le cuestan</h3>

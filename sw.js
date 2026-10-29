@@ -1,6 +1,6 @@
 // Guarda la app en la tablet para que funcione sin internet.
 // Cambia VERSION cada vez que publiques cambios para que la tablet los descargue.
-const VERSION = 'ffr-v3';
+const VERSION = 'ffr-v4';
 const FILES = [
   './',
   'index.html',
@@ -18,6 +18,7 @@ const FILES = [
   'js/i18n.js',
   'js/ui.js',
   'js/sample.js',
+  'js/warmup.js',
   'js/cloud.js',
   'js/cloudui.js',
   'js/firebase-config.js',

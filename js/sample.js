@@ -19,6 +19,18 @@ export const SAMPLE_UNIT = {
     { en: 'fossil', es: 'fósil' },
     { en: 'museum', es: 'museo' },
   ],
+  // Repaso de gramática del calentamiento (los cuentos nuevos traen los suyos).
+  drills: [
+    { q: 'The cheetah is ___ than the elephant.', options: ['faster', 'fastest', 'more fast'], answer: 0, hint: 'Comparativo: adjetivo corto + -er + than.', es: 'El guepardo es más rápido que el elefante.' },
+    { q: 'The blue whale is the ___ animal in the world.', options: ['bigger', 'biggest', 'most big'], answer: 1, hint: 'Superlativo: the + adjetivo corto + -est.', es: 'La ballena azul es el animal más grande del mundo.' },
+    { q: 'A lion is ___ than a cat.', options: ['dangerous', 'more dangerous', 'most dangerous'], answer: 1, hint: 'Adjetivo largo: more + adjetivo + than.', es: 'Un león es más peligroso que un gato.' },
+    { q: 'Mia is the ___ girl on her team.', options: ['taller', 'tallest', 'most tall'], answer: 1, hint: 'Superlativo: the + adjetivo + -est.', es: 'Mia es la niña más alta de su equipo.' },
+    { q: 'The goalkeeper is the player ___ catches the ball.', options: ['who', 'which', 'where'], answer: 0, hint: 'who = para personas.', es: 'El portero es el jugador que atrapa el balón.' },
+    { q: 'The museum is the place ___ we saw the fossil.', options: ['who', 'where', 'when'], answer: 1, hint: 'where = para lugares.', es: 'El museo es el lugar donde vimos el fósil.' },
+    { q: 'This is the ball ___ Leo kicked.', options: ['who', 'which', 'when'], answer: 1, hint: 'which = para cosas o animales.', es: 'Este es el balón que pateó Leo.' },
+    { q: 'Saturday is the day ___ we play football.', options: ['where', 'who', 'when'], answer: 2, hint: 'when = para tiempo (días, horas).', es: 'El sábado es el día en que jugamos fútbol.' },
+    { q: 'An elephant is ___ than a horse.', options: ['heavier', 'heaviest', 'more heavy'], answer: 0, hint: 'Termina en -y: cambia la y por i + -er.', es: 'Un elefante es más pesado que un caballo.' },
+  ],
   createdAt: '2026-10-27T00:00:00.000Z',
 };
 

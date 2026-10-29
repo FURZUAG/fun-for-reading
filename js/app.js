@@ -6,6 +6,7 @@ import { t, setLang, getLang } from './i18n.js';
 import { speakWord, speak, stop as stopAudio } from './tts.js';
 import { render, on, esc, shuffle, modal, toast, confetti, fmtTime } from './ui.js';
 import { prepareMission, runMission } from './mission.js';
+import { runWarmup } from './warmup.js';
 import { openParent } from './parent.js';
 import { cloudEnabled, cloudStatus, maybePull } from './cloud.js';
 import { renderCloudPanel } from './cloudui.js';
@@ -182,80 +183,26 @@ function checkIn(p, skill) {
     </div>`);
   speak('How do you feel today?');
   root.querySelector('#back').addEventListener('click', () => kidHome(p));
-  on(root, '.feel', 'click', (e, el) => warmUp(p, { skill, tired: el.dataset.f === 'tired' }));
+  on(root, '.feel', 'click', (e, el) => startMission(p, { skill, tired: el.dataset.f === 'tired' }));
 }
 
 // ---------- Calentamiento: unir palabras ----------
 
-function warmUp(p, opts) {
-  const unit = activeUnit();
-  const words = (unit?.words || []).filter((w) => w.en && w.es).map((w) => ({ en: w.en, es: w.es }));
-  if (words.length < 3) return startMission(p, opts);
-  const diff = (w) => {
-    const s = p.words[w.en.toLowerCase()];
-    return s ? s.wrong * 2 + s.lookups - s.correct : 0;
-  };
-  const sorted = shuffle(words).sort((a, b) => diff(b) - diff(a));
-  const chosen = shuffle([...sorted.slice(0, 2), ...shuffle(sorted.slice(2)).slice(0, 2)]).slice(0, 4);
-  const right = shuffle(chosen);
-  let selected = null;
-  let matched = 0;
-  const missed = new Set();
-
-  const root = render(`
-    <div class="screen">
-      <h2 class="center">🔥 ${t('warmup')}</h2>
-      <div class="match">
-        <div class="col">${chosen.map((w, i) => `<button class="mcard en" data-i="${i}">🔊 ${esc(w.en)}</button>`).join('')}</div>
-        <div class="col">${right.map((w) => `<button class="mcard es" data-en="${esc(w.en)}">${esc(w.es)}</button>`).join('')}</div>
-      </div>
-      <div class="row center"><button class="btn ghost" id="skip">${t('skip')} ➜</button></div>
-    </div>`);
-  root.querySelector('#skip').addEventListener('click', () => startMission(p, opts));
-  on(root, '.mcard.en', 'click', (e, el) => {
-    root.querySelectorAll('.mcard.en').forEach((b) => b.classList.remove('sel'));
-    el.classList.add('sel');
-    selected = chosen[Number(el.dataset.i)];
-    selected.el = el;
-    speakWord(selected.en);
-  });
-  on(root, '.mcard.es', 'click', (e, el) => {
-    if (!selected) return el.classList.add('wiggle'), setTimeout(() => el.classList.remove('wiggle'), 400);
-    const st = wordStat(p, selected.en);
-    st.seen += 1;
-    if (el.dataset.en === selected.en) {
-      if (!missed.has(selected.en)) st.correct += 1;
-      el.classList.add('right');
-      selected.el.classList.add('right');
-      el.disabled = selected.el.disabled = true;
-      selected.el.classList.remove('sel');
-      selected = null;
-      matched += 1;
-      if (matched === chosen.length) {
-        save();
-        toast(`🔥 ${t('warmupDone')}`);
-        setTimeout(() => startMission(p, opts), 1200);
-      }
-    } else {
-      st.wrong += 1;
-      missed.add(selected.en);
-      el.classList.add('wiggle');
-      setTimeout(() => el.classList.remove('wiggle'), 400);
-    }
-  });
-}
-
 // ---------- Misión ----------
 
+// Elige el cuento primero: el calentamiento repasa la gramática de ese cuento.
 async function startMission(p, opts) {
   const m = prepareMission(p, opts);
   if (!m) {
     await modal({ body: `<p>${t('noStories')}</p>`, buttons: [{ label: t('home'), value: true }] });
     return kidHome(p);
   }
-  runMission(m, {
-    onFinish: (session, pack) => showResults(p, session, pack),
-    onExit: () => kidHome(p),
+  runWarmup(p, m, (warmup) => {
+    m.warmup = warmup;
+    runMission(m, {
+      onFinish: (session, pack) => showResults(p, session, pack),
+      onExit: () => kidHome(p),
+    });
   });
 }
 
