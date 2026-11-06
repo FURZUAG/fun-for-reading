@@ -1,5 +1,5 @@
 // Modo papá/mamá: perfiles, vocabulario, cuentos (copiar y pegar), progreso y ajustes.
-import { state, save, uid, newProfile, getProfile, stockFor, exportBackup, importBackup, resetAll, difficultWords } from './store.js';
+import { state, save, uid, newProfile, getProfile, stockFor, exportBackup, importBackup, resetAll, difficultWords, unitFor, getUnit, unitSnapshot, packUnitInfo } from './store.js';
 import { buildPrompt, parseResponse } from './prompt.js';
 import { MAX_LEVEL } from './levels.js';
 import { englishVoices, speak } from './tts.js';
@@ -103,6 +103,7 @@ function dashboard() {
   root.querySelector('#out').addEventListener('click', () => exitTo());
   on(root, '.tab', 'click', (e, el) => {
     tab = el.dataset.t;
+    if (tab === 'vocab') editingUnit = null; // la pestaña abre la lista de unidades
     dashboard();
   });
   const pane = root.querySelector('#pane');
@@ -127,6 +128,9 @@ function kidsPane(pane) {
           <input class="input name" value="${esc(p.name)}" placeholder="Nombre">
           <input class="input age" type="number" min="5" max="14" value="${p.age}" style="width:5.5em"> años
         </div>
+        <label>Unidad que está viendo
+          <select class="input unitsel">${[...state.units].reverse().map((u) => `<option value="${u.id}" ${unitFor(p)?.id === u.id ? 'selected' : ''}>${esc(u.name)}</option>`).join('')}</select>
+        </label>
         <p class="muted">Temas favoritos</p>
         ${themeChecks(p.themes)}
         <div class="row levels">
@@ -171,6 +175,11 @@ function kidsPane(pane) {
 
   pane.querySelectorAll('.kid-edit').forEach((card) => {
     const p = getProfile(card.dataset.id);
+    card.querySelector('.unitsel').addEventListener('change', (e) => {
+      p.activeUnitId = e.target.value;
+      save();
+      toast(`${esc(p.name)} ahora ve: ${esc(getUnit(p.activeUnitId).name)} ✓`);
+    });
     on(card, '.lv', 'click', (e, el) => {
       const s = el.dataset.s;
       p.prog[s].level = Math.min(Math.max(p.prog[s].level + Number(el.dataset.d), 1), MAX_LEVEL);
@@ -206,7 +215,7 @@ function kidsPane(pane) {
 
 // ---------- Vocabulario y gramática ----------
 
-let editingUnit = null;
+let editingUnit = null; // unidad abierta en la pestaña Vocabulario
 
 function wordsToText(words) {
   return words.map((w) => (w.es ? `${w.en} = ${w.es}` : w.en)).join('\n');
@@ -224,61 +233,143 @@ function textToWords(text) {
     .filter((w) => w.en);
 }
 
+function packStatus(pack) {
+  const done = state.sessions.filter((x) => x.packId === pack.id);
+  if (!done.length) return '<span class="muted">pendiente</span>';
+  return done
+    .map((x) => {
+      const kid = getProfile(x.profileId);
+      return `<span class="badge done">✓ ${esc(kid?.name || '')} · ${fmtDate(x.date)} · ${x.max ? Math.round((x.score / x.max) * 100) : 0}%</span>`;
+    })
+    .join(' ');
+}
+
+function unitPacks(unit) {
+  return state.packs.filter((p) => p.unitId === unit.id);
+}
+
+// Lista de unidades: cada una guarda su vocabulario, su gramática y los cuentos que se crearon con ella.
 function vocabPane(pane) {
-  const unit = state.units.find((u) => u.id === (editingUnit || state.activeUnitId)) || state.units[0];
+  const unit = getUnit(editingUnit);
+  if (unit) return unitDetail(pane, unit);
+  editingUnit = null;
   pane.innerHTML = `
     <div class="card">
-      <h3>Unidades (cada 4 semanas)</h3>
+      <h3>Unidades</h3>
+      <p class="muted">Cada niño ve su propia unidad. Las unidades anteriores se quedan guardadas con sus cuentos: ábrelas para ver su contenido o vuelve a activarlas cuando quieras.</p>
+      ${state.profiles.length ? `<div class="row wrap">${state.profiles.map((p) => `<span class="chip">${esc(p.name)}: <b>${esc(unitFor(p)?.name || '—')}</b></span>`).join('')}</div>` : ''}
       <div class="unit-list">
-        ${state.units
-          .map(
-            (u) => `<div class="unit-row ${unit && u.id === unit.id ? 'sel' : ''}">
-              <button class="link edit-u" data-id="${u.id}">${esc(u.name)}</button>
-              <span class="muted">${u.words.length} palabras</span>
-              ${u.id === state.activeUnitId ? '<span class="badge">✓ Activa</span>' : `<button class="btn small ghost act" data-id="${u.id}">Hacer activa</button>`}
-            </div>`,
-          )
+        ${[...state.units]
+          .reverse()
+          .map((u) => {
+            const packs = unitPacks(u);
+            const done = state.sessions.filter((x) => packs.some((p) => p.id === x.packId)).length;
+            const kids = state.profiles.filter((p) => unitFor(p)?.id === u.id);
+            return `<button class="unit-card" data-id="${u.id}">
+              <span class="unit-name">${esc(u.name)}</span>
+              <span class="muted">${esc(u.grammar || 'Sin tema gramatical')}</span>
+              <span class="muted">${u.words.length} palabras · ${packs.length} cuentos · ${done} misiones</span>
+              ${kids.length ? `<span>${kids.map((k) => `<span class="badge">✓ ${esc(k.name)}</span>`).join(' ')}</span>` : ''}
+            </button>`;
+          })
           .join('')}
       </div>
-      <button class="btn small" id="newu">➕ Nueva unidad</button>
-    </div>
-    ${
-      unit
-        ? `<div class="card">
-      <h3>Editar unidad</h3>
-      <label>Nombre<input class="input" id="uname" value="${esc(unit.name)}" placeholder="Ej. Unit 3 – Animals"></label>
-      <label>Tema gramatical<input class="input" id="ugram" value="${esc(unit.grammar)}" placeholder="Ej. Comparatives and superlatives; who / which / where / when"></label>
-      <label>Notas o ejemplos de gramática (opcional)<input class="input" id="unotes" value="${esc(unit.grammarNotes || '')}" placeholder="Ej. bigger than, the biggest"></label>
-      <label>Vocabulario — una palabra por renglón, con su traducción después de “=”
-        <textarea class="input" id="uwords" rows="12" placeholder="goalkeeper = portero\nstadium = estadio\nfossil = fósil">${esc(wordsToText(unit.words))}</textarea>
-      </label>
-      <div class="row">
-        <button class="btn primary" id="saveu">Guardar unidad</button>
-        ${state.units.length > 1 ? '<button class="btn danger small" id="delu">Borrar unidad</button>' : ''}
-      </div>
-      <p class="muted">La unidad <b>activa</b> se usa en el calentamiento y al crear cuentos nuevos.</p>
-    </div>`
-        : ''
-    }`;
-
-  on(pane, '.edit-u', 'click', (e, el) => {
+      <button class="btn" id="newu">➕ Nueva unidad</button>
+    </div>`;
+  on(pane, '.unit-card', 'click', (e, el) => {
     editingUnit = el.dataset.id;
-    dashboard();
-  });
-  on(pane, '.act', 'click', (e, el) => {
-    state.activeUnitId = el.dataset.id;
-    save();
     dashboard();
   });
   pane.querySelector('#newu').addEventListener('click', () => {
     const u = { id: uid('unit'), name: 'Unidad nueva', grammar: '', grammarNotes: '', words: [], createdAt: new Date().toISOString() };
     state.units.push(u);
-    state.activeUnitId = u.id;
     editingUnit = u.id;
     save();
     dashboard();
   });
-  pane.querySelector('#saveu')?.addEventListener('click', () => {
+}
+
+function unitDetail(pane, unit) {
+  const packs = unitPacks(unit);
+  const owners = [...state.profiles.map((p) => p.id), null];
+  const byKid = owners
+    .map((id) => ({ kid: id ? getProfile(id) : null, list: packs.filter((p) => p.profileId === id) }))
+    .filter((g) => g.list.length);
+  const drills = [...(unit.drills || []), ...packs.flatMap((p) => (p.unitId === unit.id ? p.drills || [] : []))];
+
+  pane.innerHTML = `
+    <button class="btn ghost small" id="backu">⬅ Todas las unidades</button>
+    <div class="card">
+      <h3>${esc(unit.name)}</h3>
+      <p class="muted">Quién la está viendo ahora:</p>
+      <div class="row wrap">
+        ${state.profiles
+          .map((p) =>
+            unitFor(p)?.id === unit.id
+              ? `<span class="badge">✓ ${esc(p.name)} la está viendo</span>`
+              : `<button class="btn small ghost usefor" data-id="${p.id}">Usar para ${esc(p.name)}</button>`,
+          )
+          .join('')}
+      </div>
+      <p class="muted">La unidad de cada niño se usa en su calentamiento y al crear sus cuentos nuevos.</p>
+    </div>
+    <div class="card">
+      <h3>Vocabulario y gramática</h3>
+      <label>Nombre<input class="input" id="uname" value="${esc(unit.name)}" placeholder="Ej. Unit 3 – Animals"></label>
+      <label>Tema gramatical<input class="input" id="ugram" value="${esc(unit.grammar)}" placeholder="Ej. Past simple; Comparatives and superlatives"></label>
+      <label>Notas o ejemplos de gramática (opcional)<input class="input" id="unotes" value="${esc(unit.grammarNotes || '')}" placeholder="Ej. bigger than, the biggest"></label>
+      <label>Vocabulario — una palabra por renglón, con su traducción después de “=”
+        <textarea class="input" id="uwords" rows="10" placeholder="goalkeeper = portero\nstadium = estadio\nfossil = fósil">${esc(wordsToText(unit.words))}</textarea>
+      </label>
+      <div class="row">
+        <button class="btn primary" id="saveu">Guardar unidad</button>
+        <button class="btn small ghost" id="dupu">Duplicar</button>
+        ${state.units.length > 1 ? '<button class="btn danger small" id="delu">Borrar unidad</button>' : ''}
+      </div>
+      <p class="muted">Cada cuento guarda una copia del vocabulario y la gramática con que se creó, así que editar la unidad no cambia los cuentos que ya existen.</p>
+    </div>
+    <div class="card">
+      <h3>Cuentos de esta unidad (${packs.length})</h3>
+      <button class="btn primary small" id="more">📚 Crear cuentos con esta unidad</button>
+      ${byKid.length
+        ? byKid
+            .map(
+              (g) => `<h4>${g.kid ? esc(g.kid.name) : 'Cuentos de ejemplo'}</h4>
+              ${g.list
+                .map(
+                  (s) => `<details class="story-row">
+                    <summary>${s.skill === 'reading' ? '📖' : '🎧'} <b>${esc(s.title)}</b> · nivel ${s.level} · ${packStatus(s)}</summary>
+                    ${storyPreview(s)}
+                  </details>`,
+                )
+                .join('')}`,
+            )
+            .join('')
+        : '<p class="muted">Aún no hay cuentos creados con esta unidad.</p>'}
+    </div>
+    <div class="card">
+      <h3>Ejercicios de repaso (${drills.length})</h3>
+      ${drills.length ? `<ul>${drills.map((d) => `<li>${esc(d.q)} <b>(${esc(d.options[d.answer])})</b></li>`).join('')}</ul>` : '<p class="muted">Llegan con cada cuento nuevo.</p>'}
+    </div>`;
+
+  pane.querySelector('#backu').addEventListener('click', () => {
+    editingUnit = null;
+    dashboard();
+  });
+  on(pane, '.usefor', 'click', (e, el) => {
+    getProfile(el.dataset.id).activeUnitId = unit.id;
+    save();
+    toast('Listo ✓');
+    dashboard();
+  });
+  pane.querySelector('#more').addEventListener('click', () => {
+    gen.unit = unit.id;
+    const kid = state.profiles.find((p) => unitFor(p)?.id === unit.id);
+    if (kid) gen.kid = kid.id;
+    tab = 'stories';
+    dashboard();
+  });
+  pane.querySelector('#saveu').addEventListener('click', () => {
     unit.name = pane.querySelector('#uname').value.trim() || 'Unidad';
     unit.grammar = pane.querySelector('#ugram').value.trim();
     unit.grammarNotes = pane.querySelector('#unotes').value.trim();
@@ -287,11 +378,26 @@ function vocabPane(pane) {
     toast(`Guardado ✓ (${unit.words.length} palabras)`);
     dashboard();
   });
+  pane.querySelector('#dupu').addEventListener('click', () => {
+    const u = { ...unitSnapshot(unit), id: uid('unit'), name: `${unit.name} (copia)`, createdAt: new Date().toISOString() };
+    state.units.push(u);
+    editingUnit = u.id;
+    save();
+    toast('Unidad duplicada ✓');
+    dashboard();
+  });
   pane.querySelector('#delu')?.addEventListener('click', async () => {
-    const ok = await modal({ body: `<p>¿Borrar la unidad <b>${esc(unit.name)}</b>?</p>`, buttons: [{ label: 'Cancelar', value: false }, { label: 'Borrar', cls: 'danger', value: true }] });
+    const ok = await modal({
+      body: `<p>¿Borrar la unidad <b>${esc(unit.name)}</b>?</p>${packs.length ? `<p class="muted">Sus ${packs.length} cuentos se conservan con la copia de su vocabulario.</p>` : ''}`,
+      buttons: [{ label: 'Cancelar', value: false }, { label: 'Borrar', cls: 'danger', value: true }],
+    });
     if (!ok) return;
+    packs.forEach((p) => (p.unitSnapshot ||= unitSnapshot(unit)));
     state.units = state.units.filter((u) => u.id !== unit.id);
     if (state.activeUnitId === unit.id) state.activeUnitId = state.units[0]?.id;
+    state.profiles.forEach((p) => {
+      if (p.activeUnitId === unit.id) p.activeUnitId = state.activeUnitId;
+    });
     editingUnit = null;
     save();
     dashboard();
@@ -310,7 +416,12 @@ function storyPreview(s) {
       return `<li>${esc(q.q)} <b>(${esc(q.options[q.answer])})</b></li>`;
     })
     .join('');
-  return `
+  const info = packUnitInfo(s);
+  const made = info
+    ? `<div class="made-with"><b>Creado con:</b> ${esc(info.name)}${info.grammar ? ` · ${esc(info.grammar)}` : ''}
+        <details><summary class="muted">Vocabulario usado (${info.words.length})</summary><div class="checks">${info.words.map((w) => `<span class="chip">${esc(w.en)}${w.es ? ` = ${esc(w.es)}` : ''}</span>`).join('')}</div></details></div>`
+    : '';
+  return `${made}
     ${s.parts.map((p, i) => `<p><b>${i + 1}.</b> ${esc(p.text)}<br><span class="muted">${esc(p.es)}</span></p>`).join('')}
     <ol>${qs}</ol>
     ${s.drills?.length ? `<p class="muted"><b>Repaso del calentamiento</b></p><ul>${s.drills.map((d) => `<li>${esc(d.q)} <b>(${esc(d.options[d.answer])})</b></li>`).join('')}</ul>` : ''}`;
@@ -322,8 +433,9 @@ function storiesPane(pane) {
     return;
   }
   gen.kid = getProfile(gen.kid)?.id || state.profiles[0].id;
-  gen.unit = state.units.find((u) => u.id === gen.unit)?.id || state.activeUnitId;
   const kid = getProfile(gen.kid);
+  gen.unit = getUnit(gen.unit)?.id || unitFor(kid).id;
+  const otherUnit = gen.unit !== unitFor(kid).id;
 
   const stockRows = state.profiles
     .map((p) => {
@@ -350,6 +462,7 @@ function storiesPane(pane) {
         <label>🎧 Audios <input class="input" id="gnl" type="number" min="0" max="4" value="${gen.nl}" style="width:4.5em"></label>
       </div>
       <p class="muted">Niveles actuales de ${esc(kid.name)}: 📖 ${kid.prog.reading.level} · 🎧 ${kid.prog.listening.level}. Los cuentos se crean a su nivel.</p>
+      ${otherUnit ? `<p class="hint">Esta no es la unidad que está viendo ${esc(kid.name)} (${esc(unitFor(kid).name)}). Los cuentos se guardarán en la unidad elegida y se usarán después de los de su unidad actual.</p>` : ''}
       <button class="btn primary" id="mk">📋 Copiar instrucciones</button>
       <a class="btn ghost" href="https://claude.ai/new" target="_blank" rel="noopener">Abrir Claude ↗</a>
       <a class="btn ghost" href="https://gemini.google.com/app" target="_blank" rel="noopener">Abrir Gemini ↗</a>
@@ -368,7 +481,7 @@ function storiesPane(pane) {
       <h3>Cuentos pendientes de ${esc(kid.name)} (${pending.length})</h3>
       ${pending.length ? pending.map((s) => `
         <details class="story-row">
-          <summary>${s.skill === 'reading' ? '📖' : '🎧'} <b>${esc(s.title)}</b> · nivel ${s.level} · ${s.parts.length} partes · ${s.questions.length} preguntas</summary>
+          <summary>${s.skill === 'reading' ? '📖' : '🎧'} <b>${esc(s.title)}</b> · nivel ${s.level} · <span class="muted">${esc(packUnitInfo(s)?.name || '')}</span></summary>
           ${storyPreview(s)}
           <button class="btn danger small delstory" data-id="${s.id}">Borrar cuento</button>
         </details>`).join('') : '<p class="muted">No hay cuentos propios pendientes. (Los cuentos de ejemplo se usan mientras tanto.)</p>'}
@@ -388,6 +501,7 @@ function storiesPane(pane) {
   pane.querySelector('#gkid').addEventListener('change', () => {
     readForm();
     draft = null;
+    gen.unit = unitFor(getProfile(gen.kid)).id;
     dashboard();
   });
   ['#gunit', '#gnr', '#gnl'].forEach((sel) => pane.querySelector(sel).addEventListener('change', () => (pane.querySelector('#prompt').value = promptText())));
@@ -412,6 +526,8 @@ function storiesPane(pane) {
     if (!text.trim()) return toast('Primero pega la respuesta');
     try {
       const { stories, errors } = parseResponse(text, { profileId: gen.kid, unitId: gen.unit });
+      const snap = unitSnapshot(getUnit(gen.unit));
+      stories.forEach((st) => (st.unitSnapshot = snap));
       draft = { stories, errors };
       drawDraft(pane);
     } catch (e) {
@@ -529,12 +645,13 @@ function progressPane(pane) {
     <div class="card">
       <h3>Últimas misiones</h3>
       <div class="table-wrap"><table class="table">
-        <tr><th>Fecha</th><th>Tipo</th><th>Cuento</th><th>Nivel</th><th>Tiempo</th><th>Aciertos</th><th>Aventón</th><th></th></tr>
+        <tr><th>Fecha</th><th>Tipo</th><th>Cuento</th><th>Unidad</th><th>Nivel</th><th>Tiempo</th><th>Aciertos</th><th>Aventón</th><th></th></tr>
         ${ses.slice(-15).reverse().map((s) => `
           <tr>
             <td>${fmtDate(s.date)}</td>
             <td>${s.skill === 'reading' ? '📖' : '🎧'}</td>
             <td>${esc(s.title || '')}</td>
+            <td>${esc(packUnitInfo(state.packs.find((x) => x.id === s.packId) || { unitId: s.unitId })?.name || '')}</td>
             <td>${s.level}</td>
             <td>${fmtTime(s.focusMs)}</td>
             <td>${s.max ? Math.round((s.score / s.max) * 100) : 0}%</td>

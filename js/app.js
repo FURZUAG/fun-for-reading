@@ -1,5 +1,5 @@
 // Pantallas del niño: elegir perfil, compañero, inicio, check-in, calentamiento y resultados.
-import { state, save, getProfile, activeUnit, stockFor, sessionsThisWeek, finishSession, wordStat } from './store.js';
+import { state, save, getProfile, unitFor, stockFor, sessionsThisWeek, finishSession, wordStat } from './store.js';
 import { SPECIES, creatureSVG } from './creatures.js';
 import { stageForLevel, xpForNext, BONUS_XP } from './levels.js';
 import { t, setLang, getLang } from './i18n.js';
@@ -137,6 +137,7 @@ function kidHome(p) {
             <h3>${t('missionsWeek')}</h3>
             <div class="week">${[0, 1, 2].map((i) => `<span class="${i < week ? 'on' : ''}">⭐</span>`).join('')}${week > 3 ? `<span class="on">+${week - 3}</span>` : ''}</div>
           </div>
+          <p class="topic">📚 ${t('topic')}: <b>${esc(unitFor(p)?.name || '')}</b></p>
           <h3>${t('whatToday')}</h3>
           <div class="skill-choice">
             ${['reading', 'listening']

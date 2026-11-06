@@ -1,6 +1,6 @@
 // Guarda la app en la tablet para que funcione sin internet.
 // Cambia VERSION cada vez que publiques cambios para que la tablet los descargue.
-const VERSION = 'ffr-v4';
+const VERSION = 'ffr-v5';
 const FILES = [
   './',
   'index.html',

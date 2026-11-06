@@ -335,6 +335,13 @@ mark { background: #fff1a8; border-radius: 6px; padding: 2px 0; box-shadow: 0 0 
 .table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .table th, .table td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; }
 .table-wrap { overflow-x: auto; }
+.unit-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; margin: 12px 0; }
+.unit-card { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; text-align: left; background: #fff; border: 2px solid var(--line); border-radius: 16px; padding: 12px 14px; font: 600 0.95rem var(--font); color: var(--ink); cursor: pointer; }
+.unit-card:hover { border-color: var(--primary); }
+.unit-name { font: 800 1.1rem var(--display); color: var(--primary-dark); }
+.badge.done { background: var(--good-bg); color: #1a6b48; }
+.made-with { background: #f7f5ff; border-radius: 12px; padding: 8px 12px; margin: 8px 0; font-size: 0.92rem; }
+.topic { margin: 0 0 6px; }
 .wu-head { text-align: center; }
 .wu-head .tag { display: inline-block; background: var(--accent); color: #5a3d00; font-weight: 800; border-radius: 999px; padding: 2px 12px; }
 .drill { max-width: 760px; margin: 12px auto; }

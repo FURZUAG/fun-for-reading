@@ -3,6 +3,7 @@ const STRINGS = {
   whoPlays: ['Who is playing today?', '¿Quién juega hoy?'],
   parents: ['Parents', 'Papá / Mamá'],
   start: ['Start mission!', '¡Empezar misión!'],
+  topic: ['Topic', 'Tema'],
   whatToday: ['What do you want to do?', '¿Qué quieres hacer?'],
   readStory: ['Read a story', 'Leer un cuento'],
   listenStory: ['Listen to a story', 'Escuchar un cuento'],

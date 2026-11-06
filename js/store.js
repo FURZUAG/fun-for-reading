@@ -22,11 +22,27 @@ export let state = load();
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return { ...defaultState(), ...JSON.parse(raw) };
+    if (raw) {
+      const st = migrate({ ...defaultState(), ...JSON.parse(raw) });
+      localStorage.setItem(KEY, JSON.stringify(st));
+      return st;
+    }
   } catch (e) {
     console.warn('No se pudo leer el estado guardado', e);
   }
   return defaultState();
+}
+
+// Cuentos creados antes de que se guardara la copia de su unidad: se les agrega ahora,
+// con la unidad tal como está, para que ya no cambie si la unidad se edita.
+// Los perfiles sin unidad propia toman la que antes era la unidad activa de todos.
+function migrate(st) {
+  for (const pack of st.packs) {
+    const unit = st.units.find((u) => u.id === pack.unitId);
+    if (!pack.unitSnapshot && unit) pack.unitSnapshot = unitSnapshot(unit);
+  }
+  for (const p of st.profiles) p.activeUnitId ||= st.activeUnitId;
+  return st;
 }
 
 const saveListeners = [];
@@ -58,7 +74,7 @@ export function importBackup(json) {
   if (!data || !Array.isArray(data.profiles) || !Array.isArray(data.packs)) {
     throw new Error('El archivo no parece un respaldo de Fun for Reading.');
   }
-  state = { ...defaultState(), ...data };
+  state = migrate({ ...defaultState(), ...data });
   save();
 }
 
@@ -85,6 +101,7 @@ export function newProfile({ name, age, themes }) {
       listening: { level: 1, good: 0, bad: 0 },
     },
     nextSkill: 'reading',
+    activeUnitId: state.activeUnitId,
     words: {},
     best: { focusMs: 0 },
   };
@@ -97,8 +114,36 @@ export function getProfile(id) {
   return state.profiles.find((p) => p.id === id);
 }
 
+// Unidad que se usa al crear perfiles nuevos.
 export function activeUnit() {
   return state.units.find((u) => u.id === state.activeUnitId) || state.units[0];
+}
+
+// Unidad (vocabulario + gramática) que está viendo este niño. Cada niño tiene la suya.
+export function unitFor(profile) {
+  return state.units.find((u) => u.id === profile?.activeUnitId) || activeUnit();
+}
+
+export function getUnit(id) {
+  return state.units.find((u) => u.id === id) || null;
+}
+
+// Copia del vocabulario y la gramática con que se creó un cuento,
+// para poder verla aunque la unidad se edite o se borre después.
+export function unitSnapshot(unit) {
+  return {
+    name: unit.name,
+    grammar: unit.grammar,
+    grammarNotes: unit.grammarNotes || '',
+    words: unit.words.map((w) => ({ en: w.en, es: w.es })),
+  };
+}
+
+// Lo que se usó para crear el cuento: la copia guardada o, en cuentos viejos, la unidad actual.
+export function packUnitInfo(pack) {
+  if (pack.unitSnapshot) return pack.unitSnapshot;
+  const u = getUnit(pack.unitId);
+  return u ? unitSnapshot(u) : null;
 }
 
 // ---------- Cuentos ----------
@@ -119,7 +164,9 @@ export function stockFor(profile) {
 // Elige el cuento más cercano a su nivel; prefiere uno igual o un poco más fácil.
 export function pickPack(profile, skill) {
   const level = profile.prog[skill].level;
-  const dist = (p) => (p.level > level ? (p.level - level) * 2 : level - p.level);
+  const unitId = unitFor(profile)?.id;
+  // Primero los cuentos de la unidad que está viendo; los de otras unidades solo si no hay.
+  const dist = (p) => (p.unitId === unitId ? 0 : 100) + (p.level > level ? (p.level - level) * 2 : level - p.level);
   const candidates = availablePacks(profile, skill).sort((a, b) => dist(a) - dist(b) || (a.profileId ? -1 : 1));
   return candidates[0] || null;
 }

@@ -678,6 +678,7 @@ function finish(m) {
     careful: m.careful,
     checks: m.checks,
     warmup: m.warmup || null,
+    unitId: m.pack.unitId || null,
     bySkill,
     lang: getLang(),
   };

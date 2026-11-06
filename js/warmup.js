@@ -2,13 +2,14 @@
 //  1. Unir palabras de la unidad con su traducción.
 //  2. Repaso según el tema de la unidad: ejercicios de gramática o conjugación ("drills")
 //     del cuento o de la unidad; si no hay, un repaso de vocabulario escuchando la palabra.
-import { activeUnit, wordStat, save } from './store.js';
+import { unitFor, wordStat, save } from './store.js';
 import { SAMPLE_UNIT } from './sample.js';
 import { t } from './i18n.js';
 import { speak, speakWord } from './tts.js';
 import { render, on, esc, shuffle, toast } from './ui.js';
 
-const unitWords = () => (activeUnit()?.words || []).filter((w) => w.en && w.es).map((w) => ({ en: w.en, es: w.es }));
+// Vocabulario de la unidad que está viendo este niño.
+const unitWords = (unit) => (unit?.words || []).filter((w) => w.en && w.es).map((w) => ({ en: w.en, es: w.es }));
 
 function difficulty(p, w) {
   const s = p.words[w.en.toLowerCase()];
@@ -21,9 +22,9 @@ function pickWords(p, words, n) {
   return shuffle([...sorted.slice(0, Math.ceil(n / 2)), ...shuffle(sorted.slice(Math.ceil(n / 2))).slice(0, Math.floor(n / 2))]);
 }
 
-function drillsFor(m) {
-  if (m.pack.drills?.length >= 2) return m.pack.drills;
-  const unit = activeUnit();
+// Ejercicios del tema que está viendo: los del cuento si es de esa unidad, si no los de la unidad.
+function drillsFor(m, unit) {
+  if (m.pack.drills?.length >= 2 && m.pack.unitId === unit?.id) return m.pack.drills;
   if (unit?.drills?.length >= 2) return unit.drills;
   if (unit?.id === SAMPLE_UNIT.id) return SAMPLE_UNIT.drills;
   return [];
@@ -213,7 +214,8 @@ function vocabItems(p, words, n) {
 // ---------- Calentamiento completo ----------
 
 export function runWarmup(p, m, onDone) {
-  const words = unitWords();
+  const unit = unitFor(p);
+  const words = unitWords(unit);
   const result = { match: null, review: null };
   const nReview = m.pack.level >= 4 ? 4 : 3;
   const finish = () => {
@@ -221,9 +223,8 @@ export function runWarmup(p, m, onDone) {
     setTimeout(() => onDone(result), 900);
   };
   const review = () => {
-    const drills = drillsFor(m);
+    const drills = drillsFor(m, unit);
     if (drills.length >= 2) {
-      const unit = activeUnit();
       return quizRound({ title: t('grammarReview'), subtitle: unit?.grammar, items: grammarItems(drills, nReview) }, (r) => {
         result.review = { kind: 'grammar', score: r };
         finish();
